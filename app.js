@@ -55,22 +55,30 @@ return node;
 }
 
 async function render() {
-const items = await storage.list();
-$list.innerHTML = '';
-if (!items.length) { $empty.hidden = false; return; }
-$empty.hidden = true;
+  const items = await storage.list();
+  $list.innerHTML = '';
+  if (!items.length) { $empty.hidden = false; return; }
+  $empty.hidden = true;
 
-for (const it of items) {
-const title = el('h3', { class: 'title' }, it.title);
-const badge = el('span', { class: 'badge' }, it.type);
-const meta = el('div', { class: 'meta' }, badge);
-const del = el('button', { class: 'delete-btn', title: 'Törlés', onClick: () => onDelete(it.id) });
-const head = el('div', { class: 'item' }, el('div', {}, title, meta), del);
-const text = el('p', { class: 'content' }, it.content);
-const li = el('li', {}, head, text);
-li.className = 'item';
-$list.appendChild(li);
-}
+  for (const it of items) {
+    const li = el('li', { class: 'item' });
+
+    const title = el('h3', { class: 'title' }, it.title);
+    const badge = el('span', { class: 'badge' }, it.type);
+    const meta = el('div', { class: 'meta' }, badge);
+
+    const del = el('button', { class: 'delete-btn', title: 'Törlés' });
+    del.addEventListener('click', (ev) => { ev.stopPropagation(); onDelete(it.id); });
+
+    const head = el('div', { class: 'head' }, el('div', {}, title, meta), del);
+    head.addEventListener('click', () => li.classList.toggle('expanded'));
+
+    const text = el('p', { class: 'content' }, it.content);
+
+    li.appendChild(head);
+    li.appendChild(text);
+    $list.appendChild(li);
+  }
 }
 
 async function onDelete(id) {

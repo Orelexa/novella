@@ -42,3 +42,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); }
   cursor: pointer;
 }
 .delete-btn:hover { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(255,93,93,0.15) inset; }
+/* Lenyíló rész */
+.item .content { display: none; }
+.item.expanded .content { display: block; }
+.head {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 8px; align-items: center; cursor: pointer;
+}
