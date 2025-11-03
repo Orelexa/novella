@@ -1,4 +1,4 @@
-// --- Firebase importok (v11 CDN, moduláris API) ---
+// --- Firebase importok (v11, moduláris API) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import {
   getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc,
@@ -9,7 +9,7 @@ import {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// --- A TE projekted konfigurációja (Project settings → Web app → SDK config) ---
+// --- A TE projekted konfigurációja ---
 const firebaseConfig = {
   apiKey: "AIzaSyAbgXMPfEIxciIdCVVKCrltBdU-fJuBOt4",
   authDomain: "novella-b7894.firebaseapp.com",
@@ -19,17 +19,21 @@ const firebaseConfig = {
   appId: "1:883815996721:web:98fc58a858672fbe94a410"
 };
 
-// --- Inicializálás ---
+// --- Inicializálás (EGYSZER) ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// --- Diagnosztika a konzolra (látod, be vagy-e jelentkezve) ---
+// konzolhoz (diagnosztika / migráció)
+window.auth = auth;
+window.db = db;
+
+// állapotlog
 onAuthStateChanged(auth, (user) => {
   console.log("Auth user:", user ? user.uid : null);
 });
 
-// --- Gyors bejelentkezés fejlesztéshez (prompt). Később cserélhetjük UI-ra. ---
+// --- Gyors bejelentkezés prompttal (fejlesztéshez) ---
 async function ensureLogin() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
@@ -37,33 +41,38 @@ async function ensureLogin() {
 
       const email = window.prompt("Bejelentkezés e-maillel (fejlesztéshez):");
       if (!email) return reject(new Error("Nincs e-mail"));
-      const password = window.prompt("Jelszó (min. 6 karakter):");
-      if (!password) return reject(new Error("Nincs jelszó"));
 
-      try {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        resolve(cred.user);
-      } catch (e) {
-        if (e.code === "auth/user-not-found") {
-          const cred = await createUserWithEmailAndPassword(auth, email, password);
-          resolve(cred.user);
-        } else {
-          reject(e);
+      while (true) {
+        const password = window.prompt("Jelszó (min. 6 karakter):");
+        if (!password) return reject(new Error("Nincs jelszó"));
+        try {
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          return resolve(cred.user);
+        } catch (e) {
+          if (e.code === "auth/invalid-credential" || e.code === "auth/wrong-password") {
+            const again = window.confirm("Hibás jelszó ehhez az e-mailhez. Próbálsz másikat?");
+            if (again) continue;
+            return reject(e);
+          }
+          if (e.code === "auth/user-not-found") {
+            const create = window.confirm("Nincs ilyen felhasználó. Létrehozzuk most?");
+            if (!create) return reject(e);
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            return resolve(cred.user);
+          }
+          return reject(e);
         }
       }
     });
   });
 }
 
-// --- Kényelmi konstans ---
-const COL = "entries";
-
 // --- DOM elemek ---
 const $form = document.getElementById('entry-form');
 const $list = document.getElementById('entries-list');
 const $empty = document.getElementById('empty-state');
 
-// --- Kisegítő: elem létrehozás ---
+// --- Segédfüggvény DOM-hoz ---
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
   Object.entries(props).forEach(([k, v]) => {
@@ -77,8 +86,9 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
-// --- Adatréteg (Firestore) ---
-// A Rules szerint: create csak bejelentkezve, és kötelező a `uid` mező.
+// --- Firestore adattár (Rules szerint uid-et írunk, és sajátokat listázunk) ---
+const COL = "entries";
+
 const storage = {
   async list() {
     const user = await ensureLogin();
@@ -93,16 +103,13 @@ const storage = {
 
   async add(entry) {
     const user = await ensureLogin();
-
-    // kliens oldali típus-validálás a Rules tükreként
     const safeType = ['novella', 'vers'].includes(entry.type) ? entry.type : 'novella';
-
     const ref = await addDoc(collection(db, COL), {
       title: entry.title,
       type: safeType,
       content: entry.content,
-      createdAt: serverTimestamp(), // szerver oldali időbélyeg
-      uid: user.uid                  // kötelező a szabályokhoz
+      createdAt: serverTimestamp(),
+      uid: user.uid
     });
     return { id: ref.id, ...entry, type: safeType, uid: user.uid };
   },
@@ -140,13 +147,13 @@ async function render() {
   }
 }
 
-// --- Törlés (saját doksi, Rules ellenőrzi) ---
+// --- Törlés ---
 async function onDelete(id) {
   await storage.remove(id);
   await render();
 }
 
-// --- Beküldés űrlapról ---
+// --- Form submit ---
 $form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const fd = new FormData($form);
@@ -164,5 +171,5 @@ $form.addEventListener('submit', async (e) => {
 await ensureLogin();
 await render();
 
-// (opcionális) kijelentkezés teszthez a konzolból:
+// (opcionális) kijelentkezés konzolból:
 // window.logout = () => signOut(auth);
