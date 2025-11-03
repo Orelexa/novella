@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Novella és Vers Tár</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="container">
+    <h1>Novellák és versek</h1>
+    <p class="muted">Hozzáadás • Megtekintés • Törlés</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Új bejegyzés</h2>
+      <form id="entry-form">
+        <div class="row">
+          <label for="title">Cím</label>
+          <input id="title" name="title" type="text" required maxlength="150" />
+        </div>
+        <div class="row">
+          <label for="type">Típus</label>
+          <select id="type" name="type" required>
+            <option value="novella">Novella</option>
+            <option value="vers">Vers</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="content">Szöveg</label>
+          <textarea id="content" name="content" rows="8" required></textarea>
+        </div>
+        <button type="submit" class="btn primary">Mentés</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Mentett bejegyzések</h2>
+      <ul id="entries-list" class="list"></ul>
+      <p id="empty-state" class="muted" hidden>Még nincs bejegyzés.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
