@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Novella és Vers Tár</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="container">
+    <h1>Novellák és versek</h1>
+    <p class="muted">AI Generálás • Manuális hozzáadás • Megtekintés • Törlés</p>
+  </header>
+
+  <main class="container">
+    <section class="card ai-generator">
+      <h2>AI Generálás</h2>
+      <form id="ai-form">
+        <div class="row">
+          <label for="ai-title">Cím</label>
+          <input id="ai-title" name="title" type="text" required maxlength="150" placeholder="Add meg a mű címét..." />
+        </div>
+        <div class="row">
+          <label for="ai-type">Típus</label>
+          <select id="ai-type" name="type" required>
+            <option value="novella">Novella</option>
+            <option value="vers">Vers</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="ai-theme">Téma / Történet vázlata</label>
+          <textarea id="ai-theme" name="theme" rows="4" required placeholder="Írd le a témát, hangulatot, történetet..."></textarea>
+        </div>
+        <div class="row">
+          <label for="ai-pages">Hossz (oldalszám)</label>
+          <input id="ai-pages" name="pages" type="number" min="1" max="10" value="2" required />
+          <small class="muted">1 oldal ≈ 250 szó (novella) vagy 100 szó (vers)</small>
+        </div>
+        <button type="submit" class="btn primary" id="generate-btn">
+          <span id="generate-text">🤖 Generálás AI-val</span>
+          <span id="generate-loading" hidden>⏳ Generálás folyamatban...</span>
+        </button>
+      </form>
+
+      <div id="ai-result" class="ai-result" hidden>
+        <h3>Generált szöveg:</h3>
+        <div id="ai-output" class="ai-output"></div>
+        <div class="ai-actions">
+          <button id="save-generated" class="btn primary">💾 Mentés a gyűjteménybe</button>
+          <button id="discard-generated" class="btn secondary">🗑️ Elvetés</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Új bejegyzés (manuális)</h2>
+      <form id="entry-form">
+        <div class="row">
+          <label for="title">Cím</label>
+          <input id="title" name="title" type="text" required maxlength="150" />
+        </div>
+        <div class="row">
+          <label for="type">Típus</label>
+          <select id="type" name="type" required>
+            <option value="novella">Novella</option>
+            <option value="vers">Vers</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="content">Szöveg</label>
+          <textarea id="content" name="content" rows="8" required></textarea>
+        </div>
+        <button type="submit" class="btn primary">Mentés</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Mentett bejegyzések</h2>
+      <ul id="entries-list" class="list"></ul>
+      <p id="empty-state" class="muted" hidden>Még nincs bejegyzés.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
